@@ -2,25 +2,26 @@ package domain
 
 import (
 	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
 
 type Datastore struct {
-	Uri           string
-	Name          string
-	DatastoreType string
-	Db            *sql.DB
+	Uri    string
+	Name   string
+	DbType string `yaml:"dbType"`
+	Db     *sql.DB
 }
 
-func (self *Datastore) Open() *sql.DB {
-	db, err := sql.Open("mysql", self.Uri)
+func (this *Datastore) Open() *sql.DB {
+	db, err := sql.Open(this.DbType, this.Uri)
 	if err != nil {
 		log.Fatal("数据源打开错误%v", err)
 	}
-	self.Db = db
+	this.Db = db
+	return db
 }
 
-
-func (self *Datastore) Close() {
-	self.Db.Close()
+func (this *Datastore) Close() {
+	this.Db.Close()
 }

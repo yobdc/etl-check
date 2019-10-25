@@ -4,6 +4,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"strings"
 )
 
 type TaskSet struct {
@@ -13,17 +14,40 @@ type TaskSet struct {
 	Variables  map[string]string
 }
 
+func (conf *TaskSet) BuildEnvs() {
+	conf.Variables = make(map[string]string)
+
+	for i := 0; i < len(conf.Vars); i++ {
+		varItem := &conf.Vars[i]
+		varItem.Datastore.Open()
+		conf.Variables[varItem.Name] = varItem.Query()
+	}
+
+	for i, _ := range conf.Tasks {
+		for k, v := range conf.Variables {
+			conf.Tasks[i].Left.Sql = strings.ReplaceAll(conf.Tasks[i].Left.Sql, "{"+k+"}", v)
+			conf.Tasks[i].Right.Sql = strings.ReplaceAll(conf.Tasks[i].Right.Sql, "{"+k+"}", v)
+		}
+	}
+}
+
+func (conf *TaskSet) Exec() {
+	for i := 0; i < len(conf.Tasks); i++ {
+		task := conf.Tasks[i]
+		task.Exec()
+	}
+}
+
 func Parse(configFile string) *TaskSet {
 	conf := new(TaskSet)
 	yamlFile, err := ioutil.ReadFile(configFile)
-	log.Println("yamlFile:", yamlFile)
 
 	if err != nil {
-		log.Printf("yamlFile.Get err #%v ", err)
+		log.Println(err)
 	}
 	err = yaml.Unmarshal(yamlFile, conf)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		panic(err)
 	}
 	log.Println("conf", conf)
 
@@ -35,14 +59,15 @@ func Parse(configFile string) *TaskSet {
 	}
 
 	for i := 0; i < len(conf.Vars); i++ {
-		varItem := conf.Vars[i]
+		varItem := &conf.Vars[i]
 		varItem.Datastore = dsMap[varItem.Store]
 	}
 
 	for i := 0; i < len(conf.Tasks); i++ {
-		taskItem := conf.Tasks[i]
+		taskItem := &conf.Tasks[i]
 		taskItem.Left.Datastore = dsMap[taskItem.Left.Store]
 		taskItem.Right.Datastore = dsMap[taskItem.Right.Store]
 	}
+
 	return conf
 }
