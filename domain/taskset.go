@@ -14,6 +14,8 @@ type TaskSet struct {
 	Variables  map[string]string
 }
 
+var AppReturn string
+
 func (conf *TaskSet) BuildEnvs() {
 	conf.Variables = make(map[string]string)
 
@@ -25,8 +27,8 @@ func (conf *TaskSet) BuildEnvs() {
 
 	for i, _ := range conf.Tasks {
 		for k, v := range conf.Variables {
-			conf.Tasks[i].Left.Sql = strings.ReplaceAll(conf.Tasks[i].Left.Sql, "{"+k+"}", v)
-			conf.Tasks[i].Right.Sql = strings.ReplaceAll(conf.Tasks[i].Right.Sql, "{"+k+"}", v)
+			conf.Tasks[i].Left.SQL = strings.ReplaceAll(conf.Tasks[i].Left.SQL, "{"+k+"}", v)
+			conf.Tasks[i].Right.SQL = strings.ReplaceAll(conf.Tasks[i].Right.SQL, "{"+k+"}", v)
 		}
 	}
 }

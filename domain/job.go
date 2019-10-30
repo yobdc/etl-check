@@ -6,13 +6,12 @@ type Job struct {
 	Datastore *Datastore
 	Store     string
 	CheckType string `yaml:"checkType"`
-	Sql       string
+	SQL       string `yaml:"sql"`
 	ToReturn  string `yaml:"toReturn"`
 }
 
-
 func (this *Job) Query() string {
-	stmt, err := this.Datastore.Db.Prepare(this.Sql)
+	stmt, err := this.Datastore.Db.Prepare(this.SQL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,6 +39,13 @@ func (this *Job) Query() string {
 			} else {
 				result[i] = string(raw)
 			}
+		}
+	}
+
+	if this.CheckType != "" {
+		log.Println("[job][%s] %s => %s", this.Store, this.SQL, result[0])
+		if this.ToReturn != "" {
+			AppReturn = this.ToReturn
 		}
 	}
 
