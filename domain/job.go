@@ -2,6 +2,7 @@ package domain
 
 import "log"
 
+// Job 最小sql执行工作
 type Job struct {
 	Datastore *Datastore
 	Store     string
@@ -10,8 +11,9 @@ type Job struct {
 	ToReturn  string `yaml:"toReturn"`
 }
 
-func (this *Job) Query() string {
-	stmt, err := this.Datastore.Db.Prepare(this.SQL)
+// Query 执行sql查询语句
+func (job *Job) Query() string {
+	stmt, err := job.Datastore.Db.Prepare(job.SQL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,7 +24,7 @@ func (this *Job) Query() string {
 	result := make([]string, len(cols))
 
 	dest := make([]interface{}, len(cols))
-	for i, _ := range rawResult {
+	for i := range rawResult {
 		dest[i] = &rawResult[i]
 	}
 
@@ -42,10 +44,10 @@ func (this *Job) Query() string {
 		}
 	}
 
-	if this.CheckType != "" {
-		log.Println("[job][%s] %s => %s", this.Store, this.SQL, result[0])
-		if this.ToReturn != "" {
-			AppReturn = this.ToReturn
+	if job.CheckType != "" {
+		log.Printf("[job][%s] %s => %s\n", job.Store, job.SQL, result[0])
+		if job.ToReturn != "" {
+			AppReturn = job.ToReturn
 		}
 	}
 

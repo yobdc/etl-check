@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// TaskSet yaml对应工程
 type TaskSet struct {
 	Tasks      []Task
 	Datastores []Datastore
@@ -14,8 +15,10 @@ type TaskSet struct {
 	Variables  map[string]string
 }
 
+// AppReturn 定义整个app的返回值
 var AppReturn string
 
+// BuildEnvs 将环境变量放入Variables
 func (conf *TaskSet) BuildEnvs() {
 	conf.Variables = make(map[string]string)
 
@@ -25,7 +28,7 @@ func (conf *TaskSet) BuildEnvs() {
 		conf.Variables[varItem.Name] = varItem.Query()
 	}
 
-	for i, _ := range conf.Tasks {
+	for i := range conf.Tasks {
 		for k, v := range conf.Variables {
 			conf.Tasks[i].Left.SQL = strings.ReplaceAll(conf.Tasks[i].Left.SQL, "{"+k+"}", v)
 			conf.Tasks[i].Right.SQL = strings.ReplaceAll(conf.Tasks[i].Right.SQL, "{"+k+"}", v)
@@ -33,6 +36,7 @@ func (conf *TaskSet) BuildEnvs() {
 	}
 }
 
+// Exec 执行工程中的所有任务
 func (conf *TaskSet) Exec() {
 	for i := 0; i < len(conf.Tasks); i++ {
 		task := conf.Tasks[i]
@@ -40,6 +44,7 @@ func (conf *TaskSet) Exec() {
 	}
 }
 
+// Parse 解析配置文件，读取配置项
 func Parse(configFile string) *TaskSet {
 	conf := new(TaskSet)
 	yamlFile, err := ioutil.ReadFile(configFile)

@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// Task 任务
 type Task struct {
 	Name                 string
 	Left                 *Job
@@ -18,13 +19,14 @@ type Task struct {
 	Op                   string
 }
 
-func (this *Task) Exec() (result bool) {
+// Exec 执行任务
+func (task *Task) Exec() (result bool) {
 	var leftNum float64
 	var rightNum float64
-	leftResult := this.Left.Query()
-	rightResult := this.Right.Query()
+	leftResult := task.Left.Query()
+	rightResult := task.Right.Query()
 
-	switch this.Op {
+	switch task.Op {
 	case "eq":
 		result = leftResult == rightResult
 	case "ne":
@@ -48,19 +50,19 @@ func (this *Task) Exec() (result bool) {
 	case "gtin":
 		leftNum, _ = strconv.ParseFloat(leftResult, 64)
 		rightNum, _ = strconv.ParseFloat(rightResult, 64)
-		deltaVal, _ := strconv.ParseFloat(this.Delta, 64)
+		deltaVal, _ := strconv.ParseFloat(task.Delta, 64)
 		result = (leftNum - rightNum) < deltaVal
 	case "ltin":
 		leftNum, _ = strconv.ParseFloat(leftResult, 64)
 		rightNum, _ = strconv.ParseFloat(rightResult, 64)
-		deltaVal, _ := strconv.ParseFloat(this.Delta, 64)
+		deltaVal, _ := strconv.ParseFloat(task.Delta, 64)
 		result = (rightNum - leftNum) < deltaVal
 	case "in":
 		leftNum, _ = strconv.ParseFloat(leftResult, 64)
 		rightNum, _ = strconv.ParseFloat(rightResult, 64)
-		deltaVal, _ := strconv.ParseFloat(this.Delta, 64)
+		deltaVal, _ := strconv.ParseFloat(task.Delta, 64)
 		result = math.Abs(rightNum-leftNum) < deltaVal
 	}
-	log.Println("[Task]", this.Name, ": ", result)
+	log.Println("[Task]", task.Name, ": ", result)
 	return result
 }

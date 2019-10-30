@@ -15,15 +15,16 @@ type Datastore struct {
 }
 
 // Open 打开数据库连接
-func (this *Datastore) Open() *sql.DB {
-	db, err := sql.Open(this.DbType, this.URI)
+func (datastore *Datastore) Open() *sql.DB {
+	db, err := sql.Open(datastore.DbType, datastore.URI)
 	if err != nil {
-		log.Fatal("数据源打开错误%v", err)
+		log.Fatal("数据源打开错误", err)
 	}
-	this.Db = db
+	datastore.Db = db
 	return db
 }
 
-func (this *Datastore) Close() {
-	this.Db.Close()
+// Close 关闭数据库连接
+func (datastore *Datastore) Close() {
+	datastore.Db.Close()
 }

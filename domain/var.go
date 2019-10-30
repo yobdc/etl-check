@@ -5,15 +5,17 @@ import (
 	"log"
 )
 
+// EnvVar 环境变量
 type EnvVar struct {
 	Name      string
 	Store     string
 	Datastore *Datastore
-	Sql       string
+	SQL       string `yaml:"sql"`
 }
 
-func (this *EnvVar) Query() string {
-	stmt, err := this.Datastore.Db.Prepare(this.Sql)
+// Query 执行sql查询，读取返回结果
+func (envVar *EnvVar) Query() string {
+	stmt, err := envVar.Datastore.Db.Prepare(envVar.SQL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,7 +26,7 @@ func (this *EnvVar) Query() string {
 	result := make([]string, len(cols))
 
 	dest := make([]interface{}, len(cols))
-	for i, _ := range rawResult {
+	for i := range rawResult {
 		dest[i] = &rawResult[i]
 	}
 
