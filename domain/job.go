@@ -1,6 +1,16 @@
 package domain
 
-import "log"
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"strings"
+)
+
+const (
+	// NullString null常量
+	NullString = "(null)"
+)
 
 // Job 最小sql执行工作
 type Job struct {
@@ -17,39 +27,39 @@ func (job *Job) Query() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	rows, err := stmt.Query()
-	cols, err := rows.Columns()
 
-	rawResult := make([][]byte, len(cols))
-	result := make([]string, len(cols))
-
-	dest := make([]interface{}, len(cols))
-	for i := range rawResult {
-		dest[i] = &rawResult[i]
-	}
-
-	for rows.Next() {
-		err = rows.Scan(dest...)
-		if err != nil {
-			log.Fatal("Failed to scan row", err)
-			return "nil"
+	if strings.Contains(strings.ToLower(job.SQL), "select") {
+		rows, err := stmt.Query()
+		cols, err := rows.Columns()
+		vals := make([]interface{}, len(cols))
+		for i := range cols {
+			vals[i] = new(sql.RawBytes)
 		}
 
-		for i, raw := range rawResult {
-			if raw == nil {
-				result[i] = "\\N"
-			} else {
-				result[i] = string(raw)
+		for rows.Next() {
+			err = rows.Scan(vals...)
+			if err != nil {
+				log.Fatal("Failed to scan row", err)
+				// panic(err)
+				return "nil"
+			}
+
+			if job.CheckType == "" {
+				log.Printf("[job][%s] %s => %s\n", job.Store, job.SQL, vals[0])
+				if job.ToReturn != "" {
+					AppReturn = job.ToReturn
+				}
+			} else if job.CheckType == "fieldType" {
+			} else if job.CheckType == "mappedFieldType" {
 			}
 		}
+		return fmt.Sprintf("%s", vals[0])
 	}
-
-	if job.CheckType != "" {
-		log.Printf("[job][%s] %s => %s\n", job.Store, job.SQL, result[0])
-		if job.ToReturn != "" {
-			AppReturn = job.ToReturn
-		}
+	execResult, err := stmt.Exec()
+	if err != nil {
+		log.Fatal("Exec failed,err:", err)
 	}
-
-	return result[0]
+	rowsCount, err := execResult.RowsAffected()
+	log.Printf("[job][%s] %s => updated %d rows", job.Store, job.SQL, rowsCount)
+	return NullString
 }

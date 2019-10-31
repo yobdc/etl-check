@@ -33,7 +33,7 @@ func (envVar *EnvVar) Query() string {
 	for rows.Next() {
 		err = rows.Scan(dest...)
 		if err != nil {
-			fmt.Println("Failed to scan row", err)
+			fmt.Println("Failed to scan row,", err)
 			return "nil"
 		}
 
